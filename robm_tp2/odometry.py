@@ -56,8 +56,8 @@ class WheelOdometryNode(Node):
 
         # Paramètres géométriques du robot
         # TODO: Ajuster les paramètres géométriques / les remplacer par des paramètres ROS2
-        self.r = 0.0166  # Rayon d'une roue
-        self.L = 0.15    # Voie (distance entre deux roues d'un même essieu)
+        self.r = 0.0176  # Rayon d'une roue
+        self.L = 0.18    # Voie (distance entre deux roues d'un même essieu)
 
         # Mémorisation de l'ancienne position de chaque roue
         self._old_left_pos = None
@@ -71,23 +71,25 @@ class WheelOdometryNode(Node):
 
         # TODO: Il n'est pas possible de calculer une différence entre deux positions la première fois
         if self._old_left_pos is None or self._old_right_pos is None:
-            pass # Instruction qui ne fait rien
-            # TODO: Gestion du premier appel
+            
+            self._old_left_pos=left_pos
+            self._old_right_pos=right_pos
 
         # TODO: Calcul du déplacement angulaire de chaque roue 
         # et mise à jour des positions mémorisées
-        d_left  = 0.0  # TODO
-        d_right = 0.0  # TODO
-        #...  # TODO
+        d_left  = left_pos-self._old_left_pos
+        d_right = right_pos-self._old_right_pos
+        self._old_left_pos=left_pos
+        self._old_right_pos=right_pos
 
         # TODO: Calcul du déplacement du robot
-        ds     = 0.0  # TODO
-        dtheta = 0.0  # TODO
+        ds     = self.r * (d_left + d_right) / 2
+        dtheta = self.r * (d_left - d_right)/ self.L
 
         # TODO: Mise à jour de la position estimée du robot
-        self.x     = 0.0  # TODO
-        self.y     = 0.0  # TODO
-        self.theta = 0.0  # TODO
+        self.x     = self.x  + ds * cos(self.theta)
+        self.y     = self.y  + ds * sin(self.theta)
+        self.theta = self.theta + dtheta
 
         self.get_logger().info(f"x={self.x:.3f} y={self.y:.3f} theta={self.theta:.3f}")
         
@@ -95,9 +97,9 @@ class WheelOdometryNode(Node):
         msg = Odometry()
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = 'odom'
-        msg.pose.pose.position.x  = 0.0  #TODO
-        msg.pose.pose.position.y  = 0.0  #TODO
-        msg.pose.pose.orientation = Quaternion()  #TODO
+        msg.pose.pose.position.x  = self.x
+        msg.pose.pose.position.y  = self.y
+        msg.pose.pose.orientation = quaternion_msg_from_yaw(self.theta)
         self._odom_pub.publish(msg)
     
 
