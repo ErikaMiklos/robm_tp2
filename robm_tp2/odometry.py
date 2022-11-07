@@ -91,7 +91,7 @@ class WheelOdometryNode(Node):
         self.y     = self.y  + ds * sin(self.theta)
         self.theta = self.theta + dtheta
 
-        self.get_logger().info(f"x={self.x:.3f} y={self.y:.3f} theta={self.theta:.3f}")
+        #self.get_logger().info(f"x={self.x:.3f} y={self.y:.3f} theta={self.theta:.3f}")
         
         # TODO: Crée et publie le message d'odométrie
         msg = Odometry()
